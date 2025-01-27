@@ -5,8 +5,6 @@ const NODE_ENV = process.env.NODE_ENV
 
 const MONGODB_URI = process.env[`${NODE_ENV}_MONGODB_URI`]
 
-console.log(MONGODB_URI)
-
 mongoose.connect(MONGODB_URI).then(()=>{
     console.log(`Connected to ${NODE_ENV} MONGODB`)
 }).catch((err)=>{
