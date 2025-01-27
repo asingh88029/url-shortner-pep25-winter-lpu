@@ -1,5 +1,6 @@
 const express = require('express')
 require('dotenv').config()
+require('./db/connect')
 
 const NODE_ENV = process.env.NODE_ENV
 
