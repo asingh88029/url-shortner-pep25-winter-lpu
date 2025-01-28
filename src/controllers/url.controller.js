@@ -1,5 +1,10 @@
-const {CreateNewURLService} = require("./../services/url.service")
+const {CreateNewURLService, GetURLDetailsUsingItsKeyIdService, UpdateTheClickedCountOfURLByOneUsingMongoIdService} = require("./../services/url.service")
 const {GenerateUniqueIdForTheURLUtil} = require("./../utils/url.utils")
+require("dotenv").config()
+
+const NODE_ENV = process.env.NODE_ENV
+
+const PORT = process.env[`${NODE_ENV}_PORT`]
 
 const CreateNewURLController = async (req, res)=>{
     try{
@@ -22,10 +27,14 @@ const CreateNewURLController = async (req, res)=>{
             throw err
         }
 
+        const {data : {keyId : keyIdFromDB}} = CreateNewURLServiceResult
+
+        const baseURL = NODE_ENV==="DEV" ? "localhost:" + PORT : req.host
+
         res.status(201).json({
             success : true,
             message : "New URL is created",
-            data : CreateNewURLServiceResult.data
+            redirectURL : `http://${baseURL}/${keyIdFromDB}`
         })
 
     }catch(err){
@@ -40,6 +49,59 @@ const CreateNewURLController = async (req, res)=>{
     }
 }
 
+const RedirectURLController = async (req, res)=>{
+    try{
+
+        const {keyId} = req.params
+
+        if(!keyId){
+            const err = new Error("keyId is required")
+            err.statusCode = 400
+            throw err
+        }
+
+        const GetURLDetailsUsingItsKeyIdServiceResult = await GetURLDetailsUsingItsKeyIdService(keyId)
+
+        if(!GetURLDetailsUsingItsKeyIdServiceResult.success){
+            const err = new Error("Unable to fetch data from GetURLDetailsUsingItsKeyIdService")
+            err.statusCode = 400
+            throw err
+        }
+
+        const { data : {_id : mongoId, originalUrl, clickedCount, createdAt}} = GetURLDetailsUsingItsKeyIdServiceResult
+
+        // check if clickedCount < 10
+        if(clickedCount>10){
+            const err = new Error("You have reached the max limit of 10 request. Please upgrade for more limits")
+            err.statusCode = 400
+            throw err
+        }
+
+        // check if it is newer than 7 days
+        if((new Date().getTime()-createdAt)>7*24*60*60*1000){
+            const err = new Error("Your redirect url is expired. Please upgrade for more expire limits")
+            err.statusCode = 400
+            throw err
+        }
+
+        // update the clickedCount by 1 in db
+        await UpdateTheClickedCountOfURLByOneUsingMongoIdService(mongoId)
+
+        res.redirect(originalUrl)
+
+    }catch(err){
+
+        console.log(`Error in RedirectURLController with err : ${err}`)
+
+        res.status(err.statusCode?err.statusCode:500).json({
+            success : false,
+            message : err.message
+        })
+
+    }
+}
+
 module.exports = {
-    CreateNewURLController
+    CreateNewURLController,
+    RedirectURLController
 }

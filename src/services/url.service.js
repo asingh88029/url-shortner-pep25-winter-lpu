@@ -25,6 +25,51 @@ async function CreateNewURLService(originalUrl, keyId){
     }
 }
 
+async function GetURLDetailsUsingItsKeyIdService(keyId){
+    try{
+
+        const URLDetail = await URLSModel.findOne({"keyId":keyId}).exec()
+
+        if(!URLDetail){
+            throw new Error(`Unable to fetch detail for URL with keyId : ${keyId} `)
+        }
+
+        return {
+            success : true,
+            data : URLDetail
+        }
+
+    }catch(err){
+        console.log(`Error in GetURLDetailsUsingItsKeyIdService with err : ${err}`)
+        return {
+            success : false
+        }
+    }
+}
+
+async function UpdateTheClickedCountOfURLByOneUsingMongoIdService(mongoId) {
+    try{
+
+        const URL = await URLSModel.findOne({_id:mongoId}).exec()
+
+        URL.clickedCount = URL.clickedCount + 1
+
+        await URL.save()
+
+        return {
+            success : true
+        }
+
+    }catch(err){
+        console.log(`Error in UpdateTheClickedCountOfURLByOneUsingKeyIdService with err : ${err}`)
+        return {
+            success : false
+        }
+    } 
+}
+
 module.exports = {
-    CreateNewURLService
+    CreateNewURLService,
+    GetURLDetailsUsingItsKeyIdService,
+    UpdateTheClickedCountOfURLByOneUsingMongoIdService
 }
