@@ -10,6 +10,9 @@ const PORT = process.env[`${NODE_ENV}_PORT`]
 // const app = express()
 const server = express()
 
+// It will parse the body of the request into JSON
+server.use(express.json())
+
 server.use("/api/v1", v1Router)
 
 server.listen(PORT, ()=>{
