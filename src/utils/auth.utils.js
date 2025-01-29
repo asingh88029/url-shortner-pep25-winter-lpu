@@ -1,4 +1,4 @@
-function CheckEmailDomainIsPersonalOrBusinessUtil(emailDomain){
+function CheckEmailDomainIsPersonalOrNotUtil(emailDomain){
     try{
 
         const PersonalEmailDomainsMap = new Map([
@@ -41,4 +41,8 @@ function CheckEmailDomainIsPersonalOrBusinessUtil(emailDomain){
             success : false
         }
     }
+}
+
+module.exports = {
+    CheckEmailDomainIsPersonalOrNotUtil
 }
