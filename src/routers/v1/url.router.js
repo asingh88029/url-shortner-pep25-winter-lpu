@@ -11,6 +11,4 @@ URLRouter.post("/new",CreateNewURLController)
 //     res.send("ok")
 // })
 
-module.exports = {
-    URLRouter
-}
+module.exports = URLRouter
