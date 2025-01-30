@@ -22,6 +22,30 @@ const IsUserPresentUsingEmailService = async (email)=>{
     }
 }
 
+const CreateNewUserService = async (fullName, email, encryptedPassword, organizationId)=>{
+    try{
+
+
+        const user = await USERSModel.create({fullName : fullName, email : email, password : encryptedPassword, organizationId : organizationId})
+
+        if(user){
+            return {
+                success : true,
+                data : user
+            }
+        }else{
+            throw new Error(`Unable to create user for email : ${email}`)
+        }
+
+    }catch(err){
+        console.log(`Error in CreateNewUserService with err : ${err}`)
+        return {
+            success : false
+        }
+    }
+}
+
 module.exports = {
-    IsUserPresentUsingEmailService
+    IsUserPresentUsingEmailService,
+    CreateNewUserService
 }
