@@ -50,12 +50,16 @@ const SignupController = async (req, res)=>{
             // if email is business/professional email
 
             // TODO1 : from email extract the organization domain and name
-
+            const organizationDomain = emailDomain
+            const organizationName = emailDomain.split(".")[0].toUpperCase()
 
             // TODO2: check if organiztion is already created or not
+            
 
             // TODO3 : if organization is already created for the user, then use the existing organization detail 
             // otherwise create new organization
+
+            // TODO4 : create user
             res.status(201).json({
                 success : true,
                 message : "Email is business"
