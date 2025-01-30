@@ -2,6 +2,12 @@
 const {CheckEmailDomainIsPersonalOrNotUtil} = require("./../utils/auth.utils")
 const {IsUserPresentUsingEmailService, CreateNewUserService} = require("./../services/user.service")
 const {IsOrganizationPresentUsingOrgDomainService, CreateNewOrganizationService} = require("./../services/organization.service")
+require("dotenv").config()
+const jwt = require('jsonwebtoken')
+
+const NODE_ENV = process.env.NODE_ENV
+
+const JWT_SECRET_KEY = process.env[`${NODE_ENV}_JWT_SECRET_KEY`]
 
 const bcrypt = require('bcrypt')
 
@@ -117,7 +123,60 @@ const SignupController = async (req, res)=>{
 }
 
 const SigninController = async (req, res)=>{
+    try{
 
+        const {email, password} = req.body
+
+
+        if(!email){
+            const err = new Error("email is required in the body")
+            err.statusCode = 400
+            throw err
+        }
+
+        if(!password){
+            const err = new Error("password is required in the body")
+            err.statusCode = 400
+            throw err
+        }  
+        
+        // If user is already present, then return error
+        const IsUserPresentUsingEmailServiceResult = await IsUserPresentUsingEmailService(email)
+        if(!IsUserPresentUsingEmailServiceResult.success){
+            const err = new Error("Invalid Credentials")
+            err.statusCode = 400
+            throw err
+        }
+
+        const {data : {fullName : fullNameInDB, email : emailInDB, password : encryptedPasswordInDB, _id : userIdInDB, organizationId : organizationIdInDB}} = IsUserPresentUsingEmailServiceResult
+
+        const passwordCheck = await bcrypt.compare(password, encryptedPasswordInDB)
+
+        if(!passwordCheck){
+            const err = new Error("Invalid Credentials")
+            err.statusCode = 400
+            throw err
+        }
+
+        // generate token for the user, and return back the token to the user
+        const payload = {
+            userId : userIdInDB
+        }
+
+        const token = await jwt.sign(payload, JWT_SECRET_KEY, {expiresIn : '5m'})
+
+        res.status(201).json({
+            success : true,
+            token : token
+        })
+
+    }catch(err){
+        console.log(`Error in SigninController with err : ${err}`)
+        res.status(err.statusCode ? err.statusCode : 500).json({
+            success : false,
+            message : err.message
+        })
+    }
 }
 
 module.exports = {

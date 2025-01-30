@@ -1,13 +1,26 @@
-const {CreateNewURLService, GetURLDetailsUsingItsKeyIdService, UpdateTheClickedCountOfURLByOneUsingMongoIdService} = require("./../services/url.service")
+const {CreateNewURLService, GetURLDetailsUsingItsKeyIdService, UpdateTheURLUsingMongoIdService} = require("./../services/url.service")
 const {GenerateUniqueIdForTheURLUtil} = require("./../utils/url.utils")
 require("dotenv").config()
 
+const jwt = require("jsonwebtoken")
+
+const geoip = require('geoip-lite')
+
 const NODE_ENV = process.env.NODE_ENV
+
+const JWT_SECRET_KEY = process.env[`${NODE_ENV}_JWT_SECRET_KEY`]
 
 const PORT = process.env[`${NODE_ENV}_PORT`]
 
 const CreateNewURLController = async (req, res)=>{
     try{
+
+        // extract the token from the req and verify the token : Authentication
+        const token = req.headers.authorization.split(" ")[1]
+
+        const tokenVerifyResult = await jwt.verify(token, JWT_SECRET_KEY)
+
+        const {userId} = tokenVerifyResult
 
         const {originalURL} = req.body
 
@@ -19,7 +32,7 @@ const CreateNewURLController = async (req, res)=>{
 
         const keyId = GenerateUniqueIdForTheURLUtil(6)
 
-        const CreateNewURLServiceResult = await CreateNewURLService(originalURL, keyId)
+        const CreateNewURLServiceResult = await CreateNewURLService(originalURL, keyId, userId)
 
         if(!CreateNewURLServiceResult.success){
             const err = new Error("Unable to create new URL")
@@ -51,6 +64,10 @@ const CreateNewURLController = async (req, res)=>{
 
 const RedirectURLController = async (req, res)=>{
     try{
+
+        const ip = req.ip
+
+        const geography = geoip.lookup(ip)
 
         const {keyId} = req.params
 
@@ -84,8 +101,14 @@ const RedirectURLController = async (req, res)=>{
             throw err
         }
 
-        // update the clickedCount by 1 in db
-        await UpdateTheClickedCountOfURLByOneUsingMongoIdService(mongoId)
+        // update the URL in db
+        const UpdateTheURLUsingMongoIdServiceResult = await UpdateTheURLUsingMongoIdService(mongoId, geography?.region, geography?.country)
+
+        if(!UpdateTheURLUsingMongoIdServiceResult.success){
+            const err = new Error(`Error while updating the URL in db`)
+            err.statusCode = 500
+            throw err
+        }
 
         res.redirect(originalUrl)
 
