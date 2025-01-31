@@ -61,7 +61,8 @@ const SignupController = async (req, res)=>{
             // from email extract the organization domain and name
             const organizationDomain = emailDomain
             const organizationName = emailDomain.split(".")[0].toUpperCase()
-            let organizationId 
+            let organizationId
+            let organizationRole = "ORG_MEMBER" 
 
             // check if organiztion is already created or not
             const IsOrganizationPresentUsingOrgDomainServiceResult = await IsOrganizationPresentUsingOrgDomainService(organizationDomain)
@@ -80,6 +81,7 @@ const SignupController = async (req, res)=>{
                     throw err
                 }
                 organizationId = CreateNewOrganizationServiceResult.data._id
+                organizationRole = "ORG_ADMIN"
             }
 
             // TODO4 : create user
@@ -88,7 +90,7 @@ const SignupController = async (req, res)=>{
             const salt = await bcrypt.genSalt()
             const encryptedPassword = await bcrypt.hash(password, salt)
 
-            const CreateNewUserServiceResult = await CreateNewUserService(fullName, email, encryptedPassword, organizationId)
+            const CreateNewUserServiceResult = await CreateNewUserService(fullName, email, encryptedPassword, organizationId, organizationRole)
 
             if(!CreateNewUserServiceResult.success){
                 const err = new Error(`Unable to create user with email : ${email}`)
@@ -148,7 +150,7 @@ const SigninController = async (req, res)=>{
             throw err
         }
 
-        const {data : {fullName : fullNameInDB, email : emailInDB, password : encryptedPasswordInDB, _id : userIdInDB, organizationId : organizationIdInDB}} = IsUserPresentUsingEmailServiceResult
+        const {data : {fullName : fullNameInDB, email : emailInDB, password : encryptedPasswordInDB, _id : userIdInDB, organizationId : organizationIdInDB, role : roleInDB}} = IsUserPresentUsingEmailServiceResult
 
         const passwordCheck = await bcrypt.compare(password, encryptedPasswordInDB)
 
@@ -160,7 +162,8 @@ const SigninController = async (req, res)=>{
 
         // generate token for the user, and return back the token to the user
         const payload = {
-            userId : userIdInDB
+            userId : userIdInDB,
+            role : roleInDB
         }
 
         const token = await jwt.sign(payload, JWT_SECRET_KEY, {expiresIn : '5m'})

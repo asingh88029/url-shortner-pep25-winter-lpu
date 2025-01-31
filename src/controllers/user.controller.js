@@ -1,4 +1,4 @@
-const {IsUserPresentUsingUserIdService} = require("./../services/user.service")
+const {IsUserPresentUsingUserIdService, DeleteUserByUserIdService} = require("./../services/user.service")
 const {GetURLsOfTheUserUsingUserIdService} = require("./../services/url.service")
 
 const FetchAllUrlsOfTheUserUsingUserIdController = async (req, res)=>{
@@ -47,6 +47,61 @@ const FetchAllUrlsOfTheUserUsingUserIdController = async (req, res)=>{
     }
 }
 
+const DeleteUserByUserIdController = async (req, res)=>{
+    try{
+
+        console.log(req, "REQ")
+
+        console.log(res, "RES")
+
+        const {userId : userIdToDelete} = req.params
+
+        const adminUserId = req.userId
+
+        const AdminDetail = await IsUserPresentUsingUserIdService(adminUserId)
+        const UserToDeleteDetail = await IsUserPresentUsingUserIdService(userIdToDelete)
+
+        console.log(AdminDetail, UserToDeleteDetail)
+
+        const orgIdofAdmin = AdminDetail.data.organizationId
+
+        const orgIdofUserToDelete = UserToDeleteDetail.data.organizationId
+        
+        // check organization of adminUserId and userIdToDelete is same or not, if not same throw err
+        if(!orgIdofAdmin.equals(orgIdofUserToDelete)){
+            const err = new Error(`Invalid Request`)
+            err.statusCode = 403
+            throw err
+        }
+
+        // delete user
+        const DeleteUserByUserIdControllerResult = await DeleteUserByUserIdController(userIdToDelete)
+
+        if(!DeleteUserByUserIdControllerResult.success){
+            const err = new Error(`Unable to Delete user`)
+            err.statusCode = 500
+            throw err
+        }
+
+        res.status(200).json({
+            success : true, 
+            message : `User with userId : ${userIdToDelete} deleted successfully`
+        })
+
+    }catch(err){
+
+        console.log(err)
+
+        console.log(`Error in DeleteUserByUserIdController with err : ${err}`)
+
+        res.status(err.statusCode ? err.statusCode : 500).json({
+            success : false,
+            message : err.message
+        })
+    }
+}
+
 module.exports = {
     FetchAllUrlsOfTheUserUsingUserIdController,
+    DeleteUserByUserIdController
 }

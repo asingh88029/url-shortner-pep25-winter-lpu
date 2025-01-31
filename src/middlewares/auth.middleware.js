@@ -12,9 +12,11 @@ const AuthenticationMiddleware = async (req, res, next)=>{
 
         const tokenVerifyResult = await jwt.verify(token, JWT_SECRET_KEY)
 
-        const {userId} = tokenVerifyResult
+        const {userId, role} = tokenVerifyResult
 
         req.userId = userId
+
+        req.role = role
 
         next()
 
@@ -27,6 +29,29 @@ const AuthenticationMiddleware = async (req, res, next)=>{
     }
 }
 
+const AuthoriztionMiddlewareGenerator = (role)=>{
+    return async (req, res, next)=>{
+       try{
+            if(req.role===role){
+                next()
+            }else{
+                const err = new Error(`Unauthorized Acces`)
+                err.statusCode = 403
+                throw err
+            }
+       }catch(err){
+            console.log(`Error in ${role}AuthoriztionMiddleware with err : ${err}`)
+            res.status(err.statusCode ? err.statusCode : 500).json({
+                success : false,
+                error : err.message
+            })
+       }
+    }
+}
+
+
+
 module.exports = {
-    AuthenticationMiddleware
+    AuthenticationMiddleware,
+    AuthoriztionMiddlewareGenerator
 }
