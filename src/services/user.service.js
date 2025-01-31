@@ -22,6 +22,28 @@ const IsUserPresentUsingEmailService = async (email)=>{
     }
 }
 
+const IsUserPresentUsingUserIdService = async (userId)=>{
+    try{
+
+        const user = await USERSModel.findOne({"_id" : userId}).exec()
+
+        if(user){
+            return {
+                success : true,
+                data : user
+            }
+        }else{
+            throw new Error("Unable to get user details")
+        }
+
+    }catch(err){
+        console.log(`Error in isUserPresentUsingEmailService with err : ${err}`)
+        return {
+            success : false
+        }
+    }
+}
+
 const CreateNewUserService = async (fullName, email, encryptedPassword, organizationId)=>{
     try{
 
@@ -47,5 +69,6 @@ const CreateNewUserService = async (fullName, email, encryptedPassword, organiza
 
 module.exports = {
     IsUserPresentUsingEmailService,
+    IsUserPresentUsingUserIdService,
     CreateNewUserService
 }
