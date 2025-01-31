@@ -4,7 +4,7 @@ const {GetURLsOfTheUserUsingUserIdService} = require("./../services/url.service"
 const FetchAllUrlsOfTheUserUsingUserIdController = async (req, res)=>{
     try{
 
-        const {userId} = req.params;
+        const userId = req.userId
 
         if(!userId){
             const err = new Error("userId param is required")

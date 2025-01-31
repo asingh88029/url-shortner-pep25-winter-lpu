@@ -2,25 +2,16 @@ const {CreateNewURLService, GetURLDetailsUsingItsKeyIdService, UpdateTheURLUsing
 const {GenerateUniqueIdForTheURLUtil} = require("./../utils/url.utils")
 require("dotenv").config()
 
-const jwt = require("jsonwebtoken")
-
 const geoip = require('geoip-lite')
 
 const NODE_ENV = process.env.NODE_ENV
-
-const JWT_SECRET_KEY = process.env[`${NODE_ENV}_JWT_SECRET_KEY`]
 
 const PORT = process.env[`${NODE_ENV}_PORT`]
 
 const CreateNewURLController = async (req, res)=>{
     try{
 
-        // extract the token from the req and verify the token : Authentication
-        const token = req.headers.authorization.split(" ")[1]
-
-        const tokenVerifyResult = await jwt.verify(token, JWT_SECRET_KEY)
-
-        const {userId} = tokenVerifyResult
+        const userId = req.userId
 
         const {originalURL} = req.body
 
