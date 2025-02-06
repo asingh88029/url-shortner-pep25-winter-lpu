@@ -50,18 +50,12 @@ const FetchAllUrlsOfTheUserUsingUserIdController = async (req, res)=>{
 const DeleteUserByUserIdController = async (req, res)=>{
     try{
 
-        console.log(req, "REQ")
-
-        console.log(res, "RES")
-
         const {userId : userIdToDelete} = req.params
 
         const adminUserId = req.userId
 
         const AdminDetail = await IsUserPresentUsingUserIdService(adminUserId)
         const UserToDeleteDetail = await IsUserPresentUsingUserIdService(userIdToDelete)
-
-        console.log(AdminDetail, UserToDeleteDetail)
 
         const orgIdofAdmin = AdminDetail.data.organizationId
 
@@ -75,7 +69,7 @@ const DeleteUserByUserIdController = async (req, res)=>{
         }
 
         // delete user
-        const DeleteUserByUserIdControllerResult = await DeleteUserByUserIdController(userIdToDelete)
+        const DeleteUserByUserIdControllerResult = await DeleteUserByUserIdService(userIdToDelete)
 
         if(!DeleteUserByUserIdControllerResult.success){
             const err = new Error(`Unable to Delete user`)
@@ -89,8 +83,6 @@ const DeleteUserByUserIdController = async (req, res)=>{
         })
 
     }catch(err){
-
-        console.log(err)
 
         console.log(`Error in DeleteUserByUserIdController with err : ${err}`)
 
